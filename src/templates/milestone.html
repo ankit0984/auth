@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Collection Update</title>
+    <link rel="stylesheet" href="styles/milestone.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="logo">
+          <h2>GameDB</h2>
+        </div>
+
+        <div class="content">
+          <div class="game-icon">🎮</div>
+          <h1>New Game Added!</h1>
+          <div class="game-info">
+            <h2>{{gameTitle}}</h2>
+            <p class="game-description">{{gameDescription}}</p>
+          </div>
+
+          <div class="game-details">
+            <div class="detail-item">
+              <span class="detail-icon">🎯</span>
+              <div class="detail-info">
+                <h3>Genre</h3>
+                <p>{{gameGenre}}</p>
+              </div>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">🏷️</span>
+              <div class="detail-info">
+                <h3>Tags</h3>
+                <p>{{gameTags}}</p>
+              </div>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">💻</span>
+              <div class="detail-info">
+                <h3>Platform</h3>
+                <p>{{gamePlatform}}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-links">
+            <a href="{{gameUrl}}" class="button primary">Play Now</a>
+            <a href="{{trailerUrl}}" class="button secondary">Watch Trailer</a>
+          </div>
+
+          <div class="requirements">
+            <h3>System Requirements</h3>
+            <div class="requirements-list">
+              <div class="req-item">
+                <span class="req-label">OS:</span>
+                <span class="req-value">{{systemRequirements.os}}</span>
+              </div>
+              <div class="req-item">
+                <span class="req-label">Processor:</span>
+                <span class="req-value">{{systemRequirements.processor}}</span>
+              </div>
+              <div class="req-item">
+                <span class="req-label">Memory:</span>
+                <span class="req-value">{{systemRequirements.memory}}</span>
+              </div>
+              <div class="req-item">
+                <span class="req-label">Graphics:</span>
+                <span class="req-value">{{systemRequirements.graphics}}</span>
+              </div>
+              <div class="req-item">
+                <span class="req-label">Storage:</span>
+                <span class="req-value">{{systemRequirements.storage}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Happy Gaming! 🎮</p>
+          <p>&copy; 2024 GameDB. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

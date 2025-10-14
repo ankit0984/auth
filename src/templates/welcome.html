@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to GameDB</title>
+    <link rel="stylesheet" href="styles/welcome.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="logo">
+          <h2>GameDB</h2>
+        </div>
+
+        <div class="content">
+          <h1>Welcome to GameDB, {{username}}! 🎮</h1>
+          <p>
+            Thank you for joining our gaming community! Get ready to create and manage your personal game collection,
+            track your gaming achievements, and discover new adventures.
+          </p>
+
+          <div class="features">
+            <div class="feature-item">
+              <span class="feature-icon">🎯</span>
+              <p class="feature-text">
+                <strong>Personal Game Collection:</strong> Create and manage your own game library with titles you've played or want to play
+              </p>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">📊</span>
+              <p class="feature-text">
+                <strong>Track Progress:</strong> Keep track of your gaming achievements, completion status, and playtime
+              </p>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🏆</span>
+              <p class="feature-text">
+                <strong>Gaming Stats:</strong> View detailed statistics about your gaming habits and achievements
+              </p>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🔍</span>
+              <p class="feature-text">
+                <strong>Game Discovery:</strong> Find new games based on your interests and preferences
+              </p>
+            </div>
+          </div>
+
+          <p>Ready to start building your game collection?</p>
+
+          <div class="button-container">
+            <a href="{{loginUrl}}" class="button">Start Gaming Journey</a>
+          </div>
+
+          <p>
+            Need help getting started? Our support team is here to assist you. Just reply to this email!
+          </p>
+        </div>
+
+        <div class="social-links">
+          <p>Join our gaming community:</p>
+          <a href="#">Discord</a> • <a href="#">Twitter</a> • <a href="#">Reddit</a>
+        </div>
+
+        <div class="footer">
+          <p>You received this email because you signed up for GameDB.</p>
+          <p>&copy; 2024 GameDB. All rights reserved.</p>
+          <p>{{address}}</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

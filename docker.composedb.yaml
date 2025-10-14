@@ -1,0 +1,38 @@
+version: "3.0.1"
+
+services:
+  mongodb:
+    container_name: auth_db
+    image: docker.io/bitnami/mongodb:8.0
+    environment:
+      - MONGODB_ENABLE_DIRECTORY_PER_DB=yes
+      - MONGODB_ROOT_PASSWORD=Authdb@6469
+      - MONGODB_USERNAME=Auth
+      - MONGODB_PASSWORD=Authuser@226547
+      - MONGODB_DATABASE=auth_database
+
+    ports:
+      - "27017:27017"
+    volumes:
+      - "./docker/mongodb_data:/bitnami/mongodb"
+    restart: always
+    networks:
+      - custom_network
+
+  redis:
+    image: redis:latest
+    container_name: redisdb_container
+    ports:
+      - "6379:6379"
+    volumes:
+      - "./docker/redis_data:/data"
+    restart: always
+    networks:
+      - custom_network
+
+networks:
+  custom_network:
+    driver: bridge
+volumes:
+  mongodb_data:
+    driver: local

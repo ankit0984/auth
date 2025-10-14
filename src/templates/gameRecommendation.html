@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Games You Might Like</title>
+    <link rel="stylesheet" href="styles/gameRecommendation.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="logo">
+          <h2>GameDB</h2>
+        </div>
+
+        <div class="content">
+          <h1>Games You'll Love 🎮</h1>
+          <p class="subtitle">Based on your gaming preferences</p>
+
+          <div class="recommendations">
+            {{#each games}}
+            <div class="game-card">
+              <div class="game-image">
+                <img src="{{imageUrl}}" alt="{{title}}" />
+                <span class="rating">{{rating}}</span>
+              </div>
+              <div class="game-info">
+                <h3>{{title}}</h3>
+                <p class="genre">{{genre}}</p>
+                <div class="tags">
+                  {{#each tags}}
+                  <span class="tag">{{this}}</span>
+                  {{/each}}
+                </div>
+                <p class="description">{{description}}</p>
+                <div class="meta-info">
+                  <span class="platform">{{platform}}</span>
+                  <span class="release-date">{{releaseDate}}</span>
+                </div>
+              </div>
+              <a href="{{gameUrl}}" class="add-button">Add to Collection</a>
+            </div>
+            {{/each}}
+          </div>
+
+          <div class="why-recommended">
+            <h2>Why We Think You'll Like These</h2>
+            <div class="reason-cards">
+              <div class="reason">
+                <span class="reason-icon">🎯</span>
+                <p>Matches your favorite genres</p>
+              </div>
+              <div class="reason">
+                <span class="reason-icon">⭐</span>
+                <p>Highly rated by similar players</p>
+              </div>
+              <div class="reason">
+                <span class="reason-icon">🎮</span>
+                <p>Similar to games you enjoy</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="button-container">
+            <a href="{{exploreUrl}}" class="button">Explore More Games</a>
+          </div>
+        </div>
+
+        <div class="preferences">
+          <h3>Your Gaming Preferences</h3>
+          <div class="preference-tags">
+            {{#each preferences}}
+            <span class="preference-tag">{{this}}</span>
+            {{/each}}
+          </div>
+          <p class="update-note">
+            <a href="{{preferencesUrl}}">Update your preferences</a> to get better recommendations
+          </p>
+        </div>
+
+        <div class="footer">
+          <p>Happy Gaming! 🎮</p>
+          <p>&copy; 2024 GameDB. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
