@@ -390,7 +390,7 @@ src/
 │   └── auth.routes.js
 ├── server/              # Server configuration
 │   ├── app.js
-│   └── server.js
+│   └── index.js
 ├── services/            # Business logic
 │   └── redis.service.js
 ├── templates/           # Email templates
@@ -501,7 +501,7 @@ SECURE_COOKIES=true
 module.exports = {
   apps: [{
     name: 'auth-starter',
-    script: 'src/server/server.js',
+    script: 'src/server/index.js',
     instances: 'max',
     exec_mode: 'cluster',
     env: {

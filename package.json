@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/server/server.js",
-    "start": "node src/server/server.js",
+    "dev": "nodemon src/server/index.js",
+    "start": "node src/server/index.js",
     "format": "prettier --write \"src/**/*.{js,ts,json,jsx,tsx}\""
   },
   "author": "ankit kumar",

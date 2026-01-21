@@ -25,7 +25,7 @@
 #### Component Architecture
 
 **1. Express Application Layer**
-- **Entry Point**: `src/server/server.js`
+- **Entry Point**: `src/server/index.js`
 - **App Configuration**: `src/server/app.js`
 - **Middleware Pipeline**: Security, logging, parsing, routing
 - **Error Handling**: Centralized error management
