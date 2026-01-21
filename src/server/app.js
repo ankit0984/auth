@@ -40,9 +40,10 @@ app.use(cors(corsOptions));
 // routers for route
 import { auth_router } from "../routes/auth.routes.js";
 import { errorHandler } from "../middleware/errorHandelre.js";
+import { user_details } from "../routes/profile.routes.js";
 
 app.use("/api", auth_router);
-// app.use("/api", game_router);
+app.use("/api", user_details);
 app.use(errorHandler);
 
 app.get("/", (req, res) => {

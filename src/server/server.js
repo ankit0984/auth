@@ -3,7 +3,7 @@ import dbconfig from "../db/db.js";
 import redisClient from "../db/redis.js";
 import dotenv from "dotenv";
 
-dotenv.config("../.env");
+dotenv.config({path: "../.env"});
 dbconfig()
   .then(() => {
     redisClient;

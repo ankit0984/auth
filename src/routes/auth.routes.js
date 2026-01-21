@@ -16,6 +16,7 @@ auth_router.route("/auth/login").post(login);
 auth_router.route("/auth/forgot-password").post(requestPasswordReset);
 auth_router.route("/auth/reset-password").post(changePassword);
 // Protected routes
+
 auth_router.route("/auth/logout").post(verifyJWT, logout);
 auth_router.route("/updateUser/:userId").put(verifyJWT, updateUser);
 auth_router.route("/refresh-token").post(verifyJWT, refreshAccessToken);
