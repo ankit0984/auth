@@ -1,0 +1,49 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Authentication API",
+  "description": "Production-ready authentication API with email verification, RBAC, secure sessions, and email-based two-factor authentication.",
+  "colors": {
+    "primary": "#0f766e",
+    "light": "#14b8a6",
+    "dark": "#115e59"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Introduction",
+        "pages": [
+          "index",
+          "getting-started/quickstart",
+          "getting-started/environment"
+        ]
+      },
+      {
+        "group": "Authentication",
+        "pages": [
+          "authentication/overview",
+          "authentication/register-and-verify",
+          "authentication/login-and-2fa",
+          "authentication/mobile-auth",
+          "authentication/password-reset",
+          "authentication/session-management"
+        ]
+      },
+      {
+        "group": "Authorization",
+        "pages": [
+          "authorization/rbac",
+          "api-reference/users",
+          "api-reference/books-direct-upload"
+        ]
+      },
+      {
+        "group": "Security",
+        "pages": [
+          "security/overview",
+          "deployment/production-checklist"
+        ]
+      }
+    ]
+  }
+}

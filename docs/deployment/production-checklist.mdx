@@ -1,0 +1,56 @@
+---
+title: "Production Checklist"
+description: "Checklist for deploying this authentication API safely."
+---
+
+# Production Checklist
+
+Use this checklist before deploying.
+
+## Infrastructure
+
+- Run behind HTTPS
+- Use a managed MongoDB deployment or hardened self-hosted instance
+- Restrict network access to the database
+- Put the API behind a reverse proxy or load balancer
+
+## Vercel
+
+- Deploy the API through `api/index.js`, which forwards to the Express app in `src/index.js`
+- Add project environment variables in Vercel before the first deployment
+- Set `CORS_ORIGIN` to your real frontend domain or a comma-separated list of allowed domains
+- If frontend and API are on different domains, set `COOKIE_SAME_SITE=none` and `COOKIE_SECURE=true`
+- Use `/` or `/api/health` to confirm the function is reachable after deployment
+
+## Secrets
+
+- Use strong unique values for `ACCESS_TOKEN`
+- Keep secrets in a secure secret manager
+- Rotate email credentials and token secrets when required
+
+## Email
+
+- Replace personal Gmail with a production email provider if possible
+- Configure SPF, DKIM, and DMARC
+- Monitor email delivery failures
+
+## Application settings
+
+- Set `NODE_ENV=production`
+- Set the correct `CORS_ORIGIN`
+- Verify `FRONTEND_URL` matches the real frontend
+- Confirm cookies are marked secure in production
+
+## Data and access
+
+- Create one controlled admin account
+- Review who has admin privileges
+- Backfill old users if you are migrating from an older schema
+
+## Recommended future improvements
+
+- Add automated tests for auth flows
+- Add OpenAPI specification
+- Add audit logs for login, role changes, and password reset
+- Add TOTP authenticator support
+- Add account lockout or anomaly detection for repeated failures

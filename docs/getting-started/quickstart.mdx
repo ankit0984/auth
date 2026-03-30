@@ -1,0 +1,65 @@
+---
+title: "Quickstart"
+description: "Run the authentication API and Mintlify docs locally."
+---
+
+# Quickstart
+
+## Prerequisites
+
+- Node.js 20+
+- MongoDB
+- A configured SMTP email account
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Start the API
+
+```bash
+npm run dev
+```
+
+The API runs on:
+
+```txt
+http://localhost:3636
+```
+
+## Start Mintlify docs
+
+Mintlify currently documents local preview through the Mint CLI. The docs site in this repo lives in the `docs/` directory.
+
+```bash
+npm run docs:dev
+```
+
+If you do not have the Mintlify CLI cached locally yet, `npx mint dev` may fetch it on first run.
+
+## Verify the service
+
+Open:
+
+```txt
+GET http://localhost:3636/
+```
+
+Expected response:
+
+```json
+{
+  "success": true,
+  "message": "API is working"
+}
+```
+
+## Recommended local workflow
+
+1. Start MongoDB.
+2. Configure `.env`.
+3. Start the API with `npm run dev`.
+4. Start docs with `npm run docs:dev`.
+5. Test auth routes with Postman, Insomnia, or a REST client.

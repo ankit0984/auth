@@ -2,17 +2,20 @@
   "name": "game_backend",
   "version": "1.0.0",
   "description": "game_db backend, consist of making gaming db on user based choice, having full stack auth system, game db,etc.",
-  "main": "server.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/server/index.js",
+    "dev": "node --watch src/server/index.js",
     "start": "node src/server/index.js",
-    "format": "prettier --write \"src/**/*.{js,ts,json,jsx,tsx}\""
+    "format": "prettier --write \"src/**/*.{js,ts,json,jsx,tsx}\"",
+    "docs:dev": "cd docs && npx mint dev"
   },
   "author": "ankit kumar",
   "license": "ISC",
   "dependencies": {
+    "@faker-js/faker": "^10.3.0",
+    "@playwright/test": "^1.58.2",
     "argon": "^2.0.21",
     "bcrypt": "^5.1.1",
     "compression": "^1.7.5",
@@ -28,6 +31,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "morgan": "^1.10.0",
+    "multer": "^2.1.1",
     "nodemailer": "^6.9.16",
     "pm2": "^5.4.3",
     "redis": "^4.7.0",
@@ -35,7 +39,6 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9",
     "prettier": "^3.4.2"
   }
 }

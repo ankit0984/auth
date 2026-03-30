@@ -2,6 +2,15 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+const verificationCodeSchema = new Schema(
+  {
+    hash: { type: String, default: null },
+    expiresAt: { type: Date, default: null },
+    sentAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema(
   {
     username: { type: String, required: true, trim: true, unique: true, index: true },
@@ -9,59 +18,67 @@ const userSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      min: [4, "firstname too short, min is 4 characters required"],
+      minlength: [2, "firstname too short, min is 2 characters required"],
     },
     lastname: {
       type: String,
       required: true,
       trim: true,
-      min: [4, "firstname too short, min is 4 characters required"],
+      minlength: [2, "lastname too short, min is 2 characters required"],
     },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     password: { type: String, required: true },
-    refreshToken: { type: String },
+    role: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "user",
+      index: true,
+    },
+    isEmailVerified: { type: Boolean, default: false, index: true },
+    emailVerification: {
+      type: verificationCodeSchema,
+      default: () => ({}),
+    },
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorVerification: {
+      type: verificationCodeSchema,
+      default: () => ({}),
+    },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+    lastLoginAt: { type: Date, default: null },
+    passwordChangedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
-// Password hashing middleware
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }
-  this.password = await bcrypt.hash(this.password, 8);
+
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordChangedAt = new Date();
   next();
 });
 
-// Password verification
 userSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcrypt.compare(password, this.password);
+  return bcrypt.compare(password, this.password);
 };
 
-// Token generation
 userSchema.methods.generateAccessToken = function () {
-  return jwt.sign({ _id: this._id, username: this.username, email: this.email }, process.env.ACCESS_TOKEN, {
-    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-  });
-};
-
-userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign({ _id: this._id }, process.env.REFRESH_TOKEN, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY });
-};
-
-// Game collection methods
-userSchema.methods.addGame = async function (gameId) {
-  if (!this.games.includes(gameId)) {
-    this.games.push(gameId);
-    return this.save();
-  }
-};
-
-userSchema.methods.removeGame = async function (gameId) {
-  this.games = this.games.filter((id) => !id.equals(gameId));
-  return this.save();
+  return jwt.sign(
+    {
+      _id: this._id,
+      username: this.username,
+      email: this.email,
+      role: this.role,
+      isEmailVerified: this.isEmailVerified,
+      twoFactorEnabled: this.twoFactorEnabled,
+    },
+    process.env.ACCESS_TOKEN,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d" }
+  );
 };
 
 export const User = mongoose.model("User", userSchema);

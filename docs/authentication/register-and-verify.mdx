@@ -1,0 +1,141 @@
+---
+title: "Register and Verify"
+description: "Detailed documentation for account creation and email verification."
+---
+
+# Register and Verify
+
+## Register account
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+```
+
+### Request body
+
+```json
+{
+  "username": "johndoe",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+### Behavior
+
+- Creates a user with default role `user`
+- Stores a hashed verification code and expiry
+- Sends a welcome email
+- Sends a 6-character verification code to the user email
+
+### Success response
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "user created successfully, verification code sent to email",
+  "data": {
+    "user": {
+      "_id": "65f2c1e5f298d9a1f5d6a999",
+      "username": "johndoe",
+      "firstname": "john",
+      "lastname": "doe",
+      "email": "john@example.com",
+      "role": "user",
+      "isEmailVerified": false,
+      "twoFactorEnabled": false
+    },
+    "verificationRequired": true
+  }
+}
+```
+
+## Verify email
+
+```http
+POST /api/auth/verify-email
+Content-Type: application/json
+```
+
+### Request body
+
+```json
+{
+  "email": "john@example.com",
+  "code": "A1B2C3"
+}
+```
+
+### Behavior
+
+- Validates email and verification code
+- Rejects expired or incorrect codes
+- Marks the account as verified
+- Deletes the stored verification code from the database
+
+### Success response
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "email verified successfully",
+  "data": {
+    "user": {
+      "_id": "65f2c1e5f298d9a1f5d6a999",
+      "email": "john@example.com",
+      "role": "user",
+      "isEmailVerified": true
+    }
+  }
+}
+```
+
+## Resend verification code
+
+```http
+POST /api/auth/resend-verification
+Content-Type: application/json
+```
+
+### Request body
+
+You may send either an email or a username.
+
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+### Rules
+
+- The account must exist
+- The account must not already be verified
+- A new code cannot be requested more than once per minute
+
+## Common errors
+
+### Invalid email format
+
+```json
+{
+  "statusCode": 400,
+  "success": false,
+  "message": "invalid email"
+}
+```
+
+### Invalid or expired verification code
+
+```json
+{
+  "statusCode": 401,
+  "success": false,
+  "message": "invalid or expired verification code"
+}
+```

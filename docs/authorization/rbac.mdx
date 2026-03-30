@@ -1,0 +1,65 @@
+---
+title: "RBAC"
+description: "Role-based access control for user and admin roles."
+---
+
+# RBAC
+
+This API supports two roles:
+
+- `user`
+- `admin`
+
+## Default behavior
+
+- Every new account is created as `user`
+- No public registration flow can create an `admin`
+- Role changes are restricted to admin-only routes
+
+## Role rules
+
+### User
+
+- Can login, verify email, manage own account, and use protected user endpoints
+- Cannot list users
+- Cannot change user roles
+
+### Admin
+
+- Has all user capabilities
+- Can list all users
+- Can update the role of another user
+
+## Admin endpoints
+
+### List users
+
+```http
+GET /api/admin/users
+Authorization: Bearer <adminAccessToken>
+```
+
+### Update user role
+
+```http
+PATCH /api/admin/users/:userId/role
+Authorization: Bearer <adminAccessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "role": "admin"
+}
+```
+
+## Middleware behavior
+
+RBAC is enforced by middleware that checks `req.user.role` after JWT validation.
+
+## Operational note
+
+The code supports admin users, but your database still needs at least one initial admin account. In practice, you usually:
+
+- Promote one seeded account manually in MongoDB
+- Or add an internal bootstrap/admin seeding process

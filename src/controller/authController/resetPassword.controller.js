@@ -1,43 +1,39 @@
-// request for password reset by sending mail for reset password
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { User } from "../../models/users.models.js";
 import { emailService } from "../../utils/emailService.js";
-import jwt from "jsonwebtoken";
-import { v4 as uuidv4 } from "uuid";
 
 export const requestPasswordReset = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
   if (!email) {
-    throw new ApiError(400, "Email is required");
+    throw new ApiError(400, "email is required");
   }
 
-  const user = await User.findOne({ email });
+  const normalizedEmail = email.toString().trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
   if (!user) {
-    throw new ApiError(404, "User not found");
+    throw new ApiError(404, "user not found");
   }
 
-  // Generate reset token
-  const resetToken = uuidv4();
-  const hashedToken = jwt.sign({ resetToken }, process.env.ACCESS_TOKEN, { expiresIn: "1h" });
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const signedToken = jwt.sign({ resetToken }, process.env.ACCESS_TOKEN, { expiresIn: "1h" });
 
-  // Save token to user
   user.resetPasswordToken = resetToken;
-  user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-  await user.save();
+  user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
+  await user.save({ validateBeforeSave: false });
 
   try {
-    // Send reset email using the new email service
-    await emailService.sendPasswordResetEmail(user.email, hashedToken);
-
-    res.status(200).json(new ApiResponse(200, {}, "Password reset email sent successfully"));
+    await emailService.sendPasswordResetEmail(user.email, signedToken);
+    return res.status(200).json(new ApiResponse(200, {}, "password reset email sent successfully"));
   } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
-
-    throw new ApiError(500, "Error sending password reset email");
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save({ validateBeforeSave: false });
+    throw new ApiError(500, "error sending password reset email");
   }
 });

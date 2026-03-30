@@ -3,77 +3,72 @@ import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { emailService } from "../../utils/emailService.js";
 import { User } from "../../models/users.models.js";
+import {
+  generateRandomCode,
+  getCodeExpiryDate,
+  hashToken,
+  normalizeIdentifier,
+  publicUserProjection,
+} from "../../utils/authSecurity.js";
 
-// Register Controller
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,64}$/;
 
-const register = asyncHandler(async (req, res) => {
+export const register = asyncHandler(async (req, res) => {
   const { username, firstname, lastname, email, password } = req.body;
 
-  if (!username || !firstname || !email || !lastname || !password) {
+  if (!username || !firstname || !lastname || !email || !password) {
     throw new ApiError(400, "all fields are required");
   }
-  // console.log(req.body);
 
-  // regex for email and password
-  const emailRegex =
-    /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g;
-  const passwordRegex =
-    /^((?=.*[\d])(?=.*[a-z])(?=.*[A-Z])|(?=.*[a-z])(?=.*[A-Z])(?=.*[^\w\d\s])|(?=.*[\d])(?=.*[A-Z])(?=.*[^\w\d\s])|(?=.*[\d])(?=.*[a-z])(?=.*[^\w\d\s])).{7,30}$/gm;
-  if (!emailRegex.exec(email)) {
+  const normalizedUsername = normalizeIdentifier(username);
+  const normalizedEmail = normalizeIdentifier(email);
+  const normalizedFirstname = firstname.trim().toLowerCase();
+  const normalizedLastname = lastname.trim().toLowerCase();
+
+  if (!emailRegex.test(normalizedEmail)) {
     throw new ApiError(400, "invalid email");
   }
-  if (!passwordRegex.exec(password)) {
-    throw new ApiError(400, "invalid password");
+
+  if (!passwordRegex.test(password)) {
+    throw new ApiError(400, "password must be 8-64 chars and include uppercase, lowercase, number and special character");
   }
-  if (username === firstname) {
-    throw new ApiError(400, "username must be unique and not same as your fullname");
+
+  if (password.toLowerCase().includes(normalizedUsername) || password.toLowerCase().includes(normalizedEmail)) {
+    throw new ApiError(400, "password should not contain username or email");
   }
-  if (password === username || password === firstname || password === lastname || password === email) {
-    throw new ApiError(400, "password should not same as username, fullname or email");
-  }
-  if (password.length < 6) {
-    throw new ApiError(400, "password must be at least 6 characters");
-  }
-  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+
+  const existingUser = await User.findOne({ $or: [{ username: normalizedUsername }, { email: normalizedEmail }] });
   if (existingUser) {
-    throw new ApiError(
-      400,
-      "user already exists"
-      //   ,[
-      //   {
-      //     field: existingUser.username === username ? "username" : "email",   // it will help for making error-stacks, and store in array of field and message
-      //     message: "This value is already taken",
-      //   },
-      // ]
-    );
+    throw new ApiError(409, "user already exists");
   }
-  const registerUser = await User.create({
-    username: username.toLowerCase(),
-    firstname: firstname.toLowerCase(),
-    lastname: lastname.toLowerCase(),
-    email: email.toLowerCase(),
-    password: password,
+
+  const verificationCode = generateRandomCode(6);
+  const createdUser = await User.create({
+    username: normalizedUsername,
+    firstname: normalizedFirstname,
+    lastname: normalizedLastname,
+    email: normalizedEmail,
+    password,
+    role: "user",
+    emailVerification: {
+      hash: hashToken(verificationCode),
+      expiresAt: getCodeExpiryDate(10),
+      sentAt: new Date(),
+    },
   });
 
-  const created_user = await User.findById(registerUser._id).select(
-    "-password -refreshToken -resetPasswordToken -resetPasswordExpires"
+  const user = await User.findById(createdUser._id).select(publicUserProjection);
+  emailService.sendRegistrationEmailsInBackground(createdUser, verificationCode);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user,
+        verificationRequired: true,
+      },
+      "user created successfully, verification code sent to email"
+    )
   );
-  //   console.log(created_user);
-  if (!created_user) {
-    throw new ApiError(500, "something went wrong while creating user");
-  }
-  // Send welcome email
-  try {
-    await emailService.sendWelcomeEmail(created_user);
-  } catch (error) {
-    console.error("Error sending welcome email:", error);
-    // Don't throw error here, as user is already registered
-  }
-  return res.status(201).json(new ApiResponse(201, created_user, "user created successfully"));
 });
-
-function sanitize(input) {
-  return input.replace(/[^a-zA-Z0-9]/g, "");
-}
-
-export { register };

@@ -1,0 +1,63 @@
+---
+title: "Security Overview"
+description: "Security controls implemented in the authentication service."
+---
+
+# Security Overview
+
+This project includes several practical security controls for a production-ready auth service.
+
+## Implemented controls
+
+### Password storage
+
+- Passwords are hashed with bcrypt
+- Passwords use a stronger cost factor than the original starter code
+
+### Secure cookies
+
+- Access tokens are set as HTTP-only cookies
+- Cookies use `sameSite: strict`
+- Cookies use `secure: true` in production
+
+### Token signing
+
+- Access tokens are signed with `ACCESS_TOKEN`
+
+### Email verification
+
+- Users cannot login until their email is verified
+- Verification codes are stored as hashes
+- Verification codes expire
+- Verification codes are deleted after successful use
+
+### Two-factor authentication
+
+- Second-factor codes are stored as hashes
+- 2FA codes expire
+- 2FA codes are deleted after successful use
+
+### Request hardening
+
+- `helmet` is enabled
+- rate limiting is enabled
+- request body parsing limits are configured
+- Mongo sanitization is enabled
+- `x-powered-by` is disabled
+
+## Known design choice
+
+2FA in this project is email-based. That is stronger than password-only auth, but weaker than authenticator-app TOTP or WebAuthn. If you want a higher-assurance production system, the next step should be:
+
+- TOTP app support
+- recovery codes
+- device/session management
+- audit logging
+
+## Operational recommendations
+
+- Put the API behind HTTPS only
+- Rotate token secrets when needed
+- Use a transactional email provider in production
+- Add centralized logging and alerting
+- Seed an initial admin account through a controlled process

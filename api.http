@@ -1,0 +1,33 @@
+### register
+#POST {{baseUrl}}/auth/register
+POST https://elibbackend-gamma.vercel.app/api/auth/register
+Content-Type: application/json
+
+{
+  "username":"ankit0984",
+  "firstname": "ankit",
+  "lastname":"kumar",
+  "email":"ak1410mk@gmail.com",
+  "password":"Pranjali@226547"
+}
+
+### login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ak1418pk@gmail.com",
+  "password": "Pranjali@226"
+}
+
+###
+GET {{baseUrl}}/users/admin/profile
+
+### logout
+POST {{baseUrl}}/auth/logout
+
+###
+POST {{baseUrl}}/auth/refresh-token
+
+###
+GET {{baseUrl}}/booksdb/get_books?page=1&page_size=10

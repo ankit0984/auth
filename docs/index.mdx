@@ -1,0 +1,66 @@
+---
+title: "Authentication API"
+description: "Overview of the production-ready authentication backend."
+---
+
+# Authentication API
+
+This service provides a secure authentication and authorization backend for applications that need:
+
+- Account registration
+- Email verification
+- Session-based JWT login with access tokens
+- Email-based two-factor authentication
+- Role-based access control
+- Password reset
+- Direct-to-ImageKit book uploads for cover images and PDFs
+
+## Core capabilities
+
+- New accounts are created with the `user` role by default.
+- Email verification is mandatory before login.
+- Two-factor authentication can be enabled after email verification.
+- Access tokens are issued through HTTP-only cookies.
+- Admin-only routes are protected with RBAC middleware.
+- Book files can be uploaded directly from frontend clients using short-lived ImageKit upload auth.
+
+## Base URL
+
+```txt
+http://localhost:3636/api
+```
+
+## Response format
+
+All endpoints use the same response envelope:
+
+```json
+{
+  "statusCode": 200,
+  "data": {},
+  "message": "operation successful",
+  "success": true
+}
+```
+
+## Authentication model
+
+- `accessToken` is short-lived and intended for API access.
+- `accessToken` is also returned in the JSON response for clients that need it.
+
+## Main flows
+
+1. Register a new account.
+2. Verify the email using a random 6-character code.
+3. Login with email or username plus password.
+4. If 2FA is enabled, submit the second 6-character code sent by email.
+5. Use protected routes with the authenticated session.
+
+## Documentation map
+
+- Use [Quickstart](/getting-started/quickstart) to run the service locally.
+- Use [Environment](/getting-started/environment) for required variables.
+- Use [Authentication Overview](/authentication/overview) for the full auth lifecycle.
+- Use [RBAC](/authorization/rbac) for role behavior.
+- Use [Books Direct Upload](/api-reference/books-direct-upload) for frontend/backend upload design.
+- Use [Security Overview](/security/overview) for implementation details and production notes.

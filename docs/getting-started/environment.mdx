@@ -1,0 +1,66 @@
+---
+title: "Environment"
+description: "Required environment variables for local and production setups."
+---
+
+# Environment
+
+Create a `.env` file in the project root.
+
+```env
+NODE_ENV=development
+SERVER_PORT=3636
+
+MONGO_URI=mongodb://localhost:27017/auth_database
+
+ACCESS_TOKEN=your-access-secret
+ACCESS_TOKEN_EXPIRY=1d
+
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
+COOKIE_SAME_SITE=strict
+COOKIE_SECURE=false
+```
+
+## Variable reference
+
+### Server
+
+- `NODE_ENV`: `development` or `production`
+- `SERVER_PORT`: port for the Express server
+
+### Database
+
+- `MONGO_URI`: MongoDB connection string
+
+### Tokens
+
+- `ACCESS_TOKEN`: secret used to sign access tokens
+- `ACCESS_TOKEN_EXPIRY`: access token lifetime
+
+## Email
+
+- `EMAIL_USER`: sender mailbox
+- `EMAIL_PASSWORD`: SMTP or Gmail app password
+
+## Frontend and CORS
+
+- `FRONTEND_URL`: used for login and reset URLs in emails
+- `CORS_ORIGIN`: allowed frontend origin or comma-separated list of origins
+
+## Cookies
+
+- `COOKIE_SAME_SITE`: `strict`, `lax`, or `none`
+- `COOKIE_SECURE`: `true` or `false`
+
+## Production guidance
+
+- Use a long random secret for `ACCESS_TOKEN`.
+- Use an app password or transactional email provider instead of a personal inbox.
+- Keep `CORS_ORIGIN` restricted to your real frontend domain or preview domains.
+- Run behind HTTPS so `secure` cookies behave correctly in production.
+- If your frontend and API are on different domains, set `COOKIE_SAME_SITE=none` and `COOKIE_SECURE=true`.
+- The base health checks are `/` and `/api/health`; database-backed `/api/*` routes return `503` until `MONGO_URI` is reachable.

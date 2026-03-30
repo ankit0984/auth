@@ -1,0 +1,182 @@
+---
+title: "Mobile Authentication"
+description: "How iOS and Android apps should integrate with the authentication API."
+---
+
+# Mobile Authentication
+
+This page documents the recommended authentication flow for mobile applications.
+
+## Recommended mobile strategy
+
+Mobile apps should use the same backend endpoints as the web app, but they should not rely on browser cookie behavior.
+
+Use this pattern:
+
+- Call the normal login endpoint
+- Read `accessToken` from the JSON response
+- Store tokens in secure device storage
+- Send `Authorization: Bearer <accessToken>` on protected requests
+- Re-authenticate when the access token expires
+
+## Why mobile should not depend on cookies
+
+The backend sets HTTP-only cookies for browser security, which is correct for web apps. Mobile apps usually need direct token handling because:
+
+- cookie management differs by platform and HTTP client
+- apps often need token-driven interceptors
+- secure device storage is the normal mobile pattern
+
+## Login flow
+
+### Request
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+### Success response
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "login successful",
+  "data": {
+    "user": {
+      "_id": "65f2c1e5f298d9a1f5d6a999",
+      "username": "johndoe",
+      "email": "john@example.com",
+      "role": "user",
+      "isEmailVerified": true,
+      "twoFactorEnabled": false
+    },
+    "auth": {
+      "userId": "65f2c1e5f298d9a1f5d6a999",
+      "role": "user",
+      "isEmailVerified": true,
+      "twoFactorEnabled": false
+    },
+    "accessToken": "jwt-access-token"
+  }
+}
+```
+
+## JWT claims available to mobile
+
+The access token contains:
+
+```json
+{
+  "_id": "65f2c1e5f298d9a1f5d6a999",
+  "username": "johndoe",
+  "email": "john@example.com",
+  "role": "user",
+  "isEmailVerified": true,
+  "twoFactorEnabled": false
+}
+```
+
+This means the app can:
+
+- know the current role immediately
+- know whether the email is verified
+- know whether 2FA is enabled
+
+## 2FA flow on mobile
+
+If 2FA is enabled, the first login request returns:
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "2fa code sent to email",
+  "data": {
+    "userId": "65f2c1e5f298d9a1f5d6a999",
+    "twoFactorRequired": true
+  }
+}
+```
+
+Then the app should prompt for the code and call:
+
+```http
+POST /api/auth/login/2fa
+Content-Type: application/json
+```
+
+```json
+{
+  "userId": "65f2c1e5f298d9a1f5d6a999",
+  "code": "F7K2Q9"
+}
+```
+
+That response returns the same `user`, `auth`, and `accessToken` payload as normal login.
+
+## Protected request example
+
+```http
+GET /api/user/details
+Authorization: Bearer <accessToken>
+```
+
+## Storage recommendations
+
+### iOS
+
+- Store tokens in Keychain
+
+### Android
+
+- Store tokens in EncryptedSharedPreferences or Keystore-backed secure storage
+
+### React Native / Flutter / Expo
+
+- Use a secure storage package, not plain async storage or shared preferences alone
+
+## What to store in app state
+
+Store these values after login:
+
+- `accessToken`
+- `auth.role`
+- `auth.isEmailVerified`
+- `auth.twoFactorEnabled`
+- minimal user profile fields needed for UI
+
+## What not to do
+
+- Do not store auth tokens in plain local storage equivalents
+- Do not trust only decoded JWT claims for authorization decisions
+- Do not store tokens in insecure storage
+- Do not assume browser cookie behavior exists on mobile clients
+
+## Recommended client-side auth state model
+
+```json
+{
+  "isAuthenticated": true,
+  "accessToken": "jwt-access-token",
+  "auth": {
+    "userId": "65f2c1e5f298d9a1f5d6a999",
+    "role": "user",
+    "isEmailVerified": true,
+    "twoFactorEnabled": false
+  },
+  "user": {
+    "_id": "65f2c1e5f298d9a1f5d6a999",
+    "username": "johndoe",
+    "email": "john@example.com"
+  }
+}
+```

@@ -1,42 +1,44 @@
+import jwt from "jsonwebtoken";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { User } from "../../models/users.models.js";
 import { emailService } from "../../utils/emailService.js";
-import jwt from "jsonwebtoken";
+
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,64}$/;
 
 export const changePassword = asyncHandler(async (req, res) => {
   const { token, newPassword } = req.body;
 
   if (!token || !newPassword) {
-    throw new ApiError(400, "Token and new password are required");
+    throw new ApiError(400, "token and new password are required");
   }
 
-  const hashedToken = jwt.verify(token, process.env.ACCESS_TOKEN);
-  const resetToken = hashedToken.resetToken;
+  if (!passwordRegex.test(newPassword)) {
+    throw new ApiError(400, "password must be 8-64 chars and include uppercase, lowercase, number and special character");
+  }
 
-  const user = await User.findOne({ resetPasswordToken: resetToken, resetPasswordExpires: { $gt: Date.now() } });
+  const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
+  const user = await User.findOne({
+    resetPasswordToken: decoded.resetToken,
+    resetPasswordExpires: { $gt: new Date() },
+  });
 
   if (!user) {
-    throw new ApiError(400, "Invalid or expired reset token");
+    throw new ApiError(400, "invalid or expired reset token");
   }
 
-  // Set new password - it will be hashed by the pre-save middleware
   user.password = newPassword;
-
-  // Clear reset token fields
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpires = undefined;
-
-  // Save the updated password
+  user.resetPasswordToken = null;
+  user.resetPasswordExpires = null;
+  user.twoFactorVerification = { hash: null, expiresAt: null, sentAt: null };
   await user.save();
 
-  // Send password reset success email
   try {
-    await emailService.sendPasswordResetSuccessEmail(user, req);
+    await emailService.sendPasswordResetSuccessEmail(user);
   } catch (error) {
     console.error("Error sending password reset success email:", error);
   }
 
-  return res.status(200).json(new ApiResponse(200, {}, "Password reset successful"));
+  return res.status(200).json(new ApiResponse(200, {}, "password reset successful"));
 });

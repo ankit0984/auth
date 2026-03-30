@@ -1,0 +1,81 @@
+---
+title: "User APIs"
+description: "Profile and user-management endpoints."
+---
+
+# User APIs
+
+## Get current user
+
+```http
+GET /api/user/details
+Authorization: Bearer <accessToken>
+```
+
+### Success response
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "user found",
+  "data": {
+    "_id": "65f2c1e5f298d9a1f5d6a999",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "role": "user",
+    "isEmailVerified": true,
+    "twoFactorEnabled": true
+  }
+}
+```
+
+## Update user profile
+
+```http
+PUT /api/users/:userId
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+### Allowed fields
+
+- `email`
+- `username`
+- `firstname`
+- `lastname`
+
+### Authorization behavior
+
+- Users may update their own profile
+- Admins may update any user profile
+- Other combinations are rejected with `403 forbidden`
+
+### Important email rule
+
+If `email` is changed:
+
+- `isEmailVerified` is reset to `false`
+- A new verification code is generated
+- A new verification email is sent
+
+## Admin: list users
+
+```http
+GET /api/admin/users
+Authorization: Bearer <adminAccessToken>
+```
+
+## Admin: update role
+
+```http
+PATCH /api/admin/users/:userId/role
+Authorization: Bearer <adminAccessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "role": "user"
+}
+```

@@ -1,0 +1,43 @@
+---
+title: "Session Management"
+description: "Access tokens, logout, and protected routes."
+---
+
+# Session Management
+
+## Access token
+
+- Signed with `ACCESS_TOKEN`
+- Short-lived
+- Used for authenticated API requests
+
+## Logout
+
+```http
+POST /api/auth/logout
+Authorization: Bearer <accessToken>
+```
+
+### Behavior
+
+- Clears pending 2FA verification state
+- Clears auth cookies in the response
+
+## Protected requests
+
+Authenticated routes accept either:
+
+- `Authorization: Bearer <accessToken>`
+- `accessToken` cookie
+
+## Example protected call
+
+```http
+GET /api/user/details
+Authorization: Bearer <accessToken>
+```
+
+## Common errors
+
+- `401 unauthorized request`
+- `401 invalid token`

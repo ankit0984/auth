@@ -1,0 +1,63 @@
+---
+title: "Authentication Overview"
+description: "How registration, verification, login, 2FA, and session handling work together."
+---
+
+# Authentication Overview
+
+The authentication lifecycle is built around four layers:
+
+- Credentials: email or username plus password
+- Account verification: email verification before first login
+- Session control: access tokens
+- Step-up security: optional email-based 2FA
+
+## Flow summary
+
+### Registration
+
+- User submits `username`, `firstname`, `lastname`, `email`, and `password`
+- Account is created with role `user`
+- A verification code is generated and emailed
+- User remains unverified until the code is confirmed
+
+### Email verification
+
+- User submits the code using `/auth/verify-email`
+- The code is checked against a hashed value in MongoDB
+- On success, `isEmailVerified` becomes `true`
+- The stored verification code is removed from the database
+
+### Login
+
+- User submits email or username plus password
+- Unverified users are blocked from login
+- If 2FA is disabled, tokens are issued immediately
+- If 2FA is enabled, a second email code is required
+
+### Logout
+
+- Auth cookies are cleared on the client response
+
+## Password rules
+
+Passwords must:
+
+- Be 8 to 64 characters long
+- Include uppercase letters
+- Include lowercase letters
+- Include numbers
+- Include special characters
+
+Passwords are rejected if they contain the username or email.
+
+## Token strategy
+
+- Access tokens are signed with `ACCESS_TOKEN`
+- Password reset forces a fresh login with a new access token
+
+## Client integration notes
+
+- Always handle both cookie-based auth and JSON token fields
+- Treat `403 email verification required before login` as a separate UX state
+- Treat `200 twoFactorRequired: true` as a partial login state

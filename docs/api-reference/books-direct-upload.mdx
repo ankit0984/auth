@@ -1,0 +1,108 @@
+---
+title: "Books Upload"
+description: "Backend upload flow using Multer memory storage and reusable ImageKit helper functions."
+---
+
+# Books Upload
+
+This API uses backend-managed upload with Multer memory storage.
+
+That means:
+
+- frontend sends `coverImage` and `pdf` to the backend as multipart form-data
+- Multer keeps files in memory only
+- files are not written to a local `tmp` folder
+- backend uploads both files directly to ImageKit
+- backend stores the final book record in MongoDB
+
+## Why this architecture
+
+Compared with writing files to local disk first, this flow:
+
+- removes temporary local file writes
+- removes local cleanup logic
+- reduces disk I/O
+- keeps the upload controller simpler
+
+## Endpoint
+
+```http
+POST /api/booksdb/upload
+Authorization: Bearer <adminAccessToken>
+Content-Type: multipart/form-data
+```
+
+## Required form fields
+
+- `title`
+- `author`
+- `description`
+- `genre`
+- `language`
+- `coverImage`
+- `pdf`
+
+`author` can be sent as:
+
+- a single string: `author=John Doe`
+- a comma-separated string: `author=John Doe,Jane Doe`
+- a JSON array string in multipart form-data: `author=["John Doe","Jane Doe"]`
+
+## Upload behavior
+
+### Cover image
+
+- accepted as an image MIME type
+- uploaded to ImageKit folder `/books/covers`
+- must be 20 MB or smaller
+
+### PDF
+
+- accepted only as `application/pdf`
+- uploaded to ImageKit folder `/books/pdfs`
+- must be 20 MB or smaller
+
+## Backend implementation details
+
+- Multer uses `memoryStorage`
+- cover image and PDF are uploaded to ImageKit in parallel
+- a shared ImageKit helper is used so upload code is not repeated
+- MongoDB save happens after both uploads succeed
+
+## Success response
+
+```json
+{
+  "statusCode": 201,
+  "success": true,
+  "message": "book uploaded successfully",
+  "data": {
+    "book": {
+      "_id": "book_id",
+      "title": "pandas1",
+      "author": ["author name"],
+      "coverImage": "https://ik.imagekit.io/viyqhktu4/books/covers/pandas-cover.png",
+      "coverImageFileId": "69bd97c35c7cd75eb80f9bd4",
+      "pdf": "https://ik.imagekit.io/viyqhktu4/books/pdfs/pandas-book.pdf",
+      "pdfFileId": "69bd97e05c7cd75eb8102fe0",
+      "genre": "python",
+      "language": "english"
+    }
+  }
+}
+```
+
+## Validation rules
+
+- caller must be `admin`
+- both `coverImage` and `pdf` are required
+- duplicate title and author combination is rejected
+- only valid image MIME types are accepted for `coverImage`
+- only `application/pdf` is accepted for `pdf`
+- ImageKit rejects files larger than 20 MB, so the backend enforces the same limit before upload
+
+## Performance notes
+
+- uploads no longer use local temp files
+- uploads still depend on server-to-ImageKit network speed
+- using memory storage is more efficient than local disk temp storage for this use case

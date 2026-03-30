@@ -1,0 +1,186 @@
+---
+title: "Login and 2FA"
+description: "Detailed documentation for sign-in and two-factor authentication."
+---
+
+# Login and 2FA
+
+## Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+### Request body
+
+```json
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+You can also use `username` instead of `email`.
+
+## Login outcomes
+
+### Standard login success
+
+If 2FA is disabled, the API:
+
+- Verifies credentials
+- Issues `accessToken`
+- Sets the access token as an HTTP-only cookie
+- Returns the authenticated user
+- Returns `role` and `isEmailVerified` in both the JWT payload and the JSON auth object
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "login successful",
+  "data": {
+    "user": {
+      "_id": "65f2c1e5f298d9a1f5d6a999",
+      "email": "john@example.com",
+      "role": "user",
+      "isEmailVerified": true,
+      "twoFactorEnabled": false
+    },
+    "auth": {
+      "userId": "65f2c1e5f298d9a1f5d6a999",
+      "role": "user",
+      "isEmailVerified": true,
+      "twoFactorEnabled": false
+    },
+    "accessToken": "jwt-access-token"
+  }
+}
+```
+
+## Web and mobile usage
+
+### Web apps
+
+- Use the HTTP-only `accessToken` cookie set by login
+- Send requests with cookies enabled
+- This is the recommended browser flow
+
+### Mobile apps
+
+- Use the same login endpoint
+- Read `accessToken` from the JSON response
+- Store them in platform secure storage, not regular local storage
+- Send the access token as `Authorization: Bearer <token>`
+
+## JWT claims
+
+The access token contains these auth claims:
+
+```json
+{
+  "_id": "65f2c1e5f298d9a1f5d6a999",
+  "username": "johndoe",
+  "email": "john@example.com",
+  "role": "user",
+  "isEmailVerified": true,
+  "twoFactorEnabled": false
+}
+```
+
+### 2FA challenge response
+
+If 2FA is enabled, login does not complete immediately.
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "2fa code sent to email",
+  "data": {
+    "userId": "65f2c1e5f298d9a1f5d6a999",
+    "twoFactorRequired": true
+  }
+}
+```
+
+## Complete 2FA login
+
+```http
+POST /api/auth/login/2fa
+Content-Type: application/json
+```
+
+### Request body
+
+```json
+{
+  "userId": "65f2c1e5f298d9a1f5d6a999",
+  "code": "F7K2Q9"
+}
+```
+
+### Behavior
+
+- Compares the submitted code against the hashed code stored in MongoDB
+- Validates expiry
+- Deletes the stored 2FA code after successful verification
+- Issues an access token
+
+## Enable 2FA
+
+Two-factor setup uses a two-step flow.
+
+### Step 1: request setup code
+
+```http
+POST /api/auth/2fa/enable
+Authorization: Bearer <accessToken>
+```
+
+This sends a 6-character setup code by email.
+
+### Step 2: confirm setup code
+
+```http
+POST /api/auth/2fa/confirm
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "code": "F7K2Q9"
+}
+```
+
+After confirmation, `twoFactorEnabled` becomes `true`.
+
+## Disable 2FA
+
+```http
+POST /api/auth/2fa/disable
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+```json
+{
+  "password": "SecurePass123!"
+}
+```
+
+## Important rules
+
+- Email verification must be completed before 2FA can be enabled
+- 2FA codes expire in 10 minutes
+- Used 2FA codes are removed from the database
+- 2FA is email-based in this implementation, not TOTP-authenticator based
+
+## Common errors
+
+- `401 invalid credentials`
+- `403 email verification required before login`
+- `401 invalid or expired 2fa code`
+- `400 2fa already enabled`

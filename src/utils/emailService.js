@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Get the directory name in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -18,16 +17,10 @@ class EmailService {
     });
   }
 
-  /**
-   * Load and compile an email template
-   * @param {string} templateName - Name of the template file without extension
-   * @param {Object} variables - Variables to replace in the template
-   */
   async compileTemplate(templateName, variables) {
     const templatePath = path.join(__dirname, "..", "templates", `${templateName}.html`);
     let template = await fs.readFile(templatePath, "utf-8");
 
-    // Replace all variables in the template
     Object.keys(variables).forEach((key) => {
       const regex = new RegExp(`{{${key}}}`, "g");
       template = template.replace(regex, variables[key]);
@@ -36,19 +29,15 @@ class EmailService {
     return template;
   }
 
-  /**
-   * Send an email using a template
-   * @param {Object} options - Email options
-   * @param {string} options.to - Recipient email
-   * @param {string} options.subject - Email subject
-   * @param {string} options.template - Template name
-   * @param {Object} options.variables - Template variables
-   */
-  async sendTemplatedEmail({ to, subject, template, variables }) {
+  async sendMail({ to, subject, html, text }) {
     try {
-      const htmlContent = await this.compileTemplate(template, variables);
-
-      const mailOptions = { from: `"ELibJS" <${process.env.EMAIL_USER}>`, to, subject, html: htmlContent };
+      const mailOptions = {
+        from: `"ELibJS" <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+        text,
+      };
 
       const info = await this.transporter.sendMail(mailOptions);
       console.log("Email sent successfully:", info.messageId);
@@ -59,10 +48,11 @@ class EmailService {
     }
   }
 
-  /**
-   * Send welcome email with enhanced personalization
-   * @param {Object} user - User object
-   */
+  async sendTemplatedEmail({ to, subject, template, variables }) {
+    const htmlContent = await this.compileTemplate(template, variables);
+    return this.sendMail({ to, subject, html: htmlContent });
+  }
+
   async sendWelcomeEmail(user) {
     const timeOfDay = new Date().getHours();
     let greeting = "Hello";
@@ -73,10 +63,10 @@ class EmailService {
 
     await this.sendTemplatedEmail({
       to: user.email,
-      subject: `Welcome to ELibJS, ${user.fullName}! 🎉`,
+      subject: `Welcome to ELibJS, ${user.firstname}!`,
       template: "welcome",
       variables: {
-        username: user.fullName || user.username,
+        username: `${user.firstname} ${user.lastname}`.trim() || user.username,
         greeting,
         loginUrl: `${process.env.FRONTEND_URL}/login`,
         address: process.env.COMPANY_ADDRESS || "Your Trusted Digital Library",
@@ -84,28 +74,19 @@ class EmailService {
     });
   }
 
-  /**
-   * Send password reset success email
-   * @param {Object} user - User object
-   */
   async sendPasswordResetSuccessEmail(user) {
     await this.sendTemplatedEmail({
       to: user.email,
-      subject: "Password Reset Successful - GameDb",
+      subject: "Password Reset Successful - ELibJS",
       template: "passwordResetSuccess",
       variables: {
-        username: user.fullName || user.username,
+        username: `${user.firstname} ${user.lastname}`.trim() || user.username,
         loginUrl: `${process.env.FRONTEND_URL}/login`,
         timestamp: new Date().toLocaleString(),
       },
     });
   }
 
-  /**
-   * Send password reset email
-   * @param {string} email - Recipient email
-   * @param {string} hashedToken - Password reset token
-   */
   async sendPasswordResetEmail(email, hashedToken) {
     await this.sendTemplatedEmail({
       to: email,
@@ -114,7 +95,50 @@ class EmailService {
       variables: { resetUrl: `${process.env.FRONTEND_URL}/passwd-reset?token=${hashedToken}` },
     });
   }
+
+  async sendVerificationCodeEmail(user, code) {
+    await this.sendMail({
+      to: user.email,
+      subject: "Verify your account",
+      text: `Your verification code is ${code}. It expires in 10 minutes.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111827;">
+          <h2>Verify your account</h2>
+          <p>Use this code to verify your account:</p>
+          <p style="font-size: 28px; font-weight: 700; letter-spacing: 6px;">${code}</p>
+          <p>This code expires in 10 minutes.</p>
+        </div>
+      `,
+    });
+  }
+
+  async sendTwoFactorCodeEmail(user, code) {
+    await this.sendMail({
+      to: user.email,
+      subject: "Your 2FA sign-in code",
+      text: `Your 2FA code is ${code}. It expires in 10 minutes.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111827;">
+          <h2>Two-factor authentication</h2>
+          <p>Use this code to finish signing in:</p>
+          <p style="font-size: 28px; font-weight: 700; letter-spacing: 6px;">${code}</p>
+          <p>This code expires in 10 minutes. If you did not request this, reset your password immediately.</p>
+        </div>
+      `,
+    });
+  }
+
+  sendRegistrationEmailsInBackground(user, verificationCode) {
+    setImmediate(() => {
+      Promise.allSettled([this.sendWelcomeEmail(user), this.sendVerificationCodeEmail(user, verificationCode)]).then((results) => {
+        const rejectedResults = results.filter((result) => result.status === "rejected");
+
+        if (rejectedResults.length) {
+          console.error("Failed to send one or more registration emails:", rejectedResults);
+        }
+      });
+    });
+  }
 }
 
-// Create and export a singleton instance
 export const emailService = new EmailService();

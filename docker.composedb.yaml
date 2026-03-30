@@ -1,14 +1,14 @@
 
 services:
   mongodb:
-    container_name: mongo_container
+    container_name: mongodb_container
     image: bitnami/mongodb:latest
     restart: unless-stopped
     environment:
       - MONGODB_USERNAME=ankit
       - MONGODB_PASSWORD=password123
       - MONGODB_ROOT_PASSWORD=admin123
-      - MONGODB_DATABASE=todo_app
+      - MONGODB_DATABASE=ebook
 
     ports:
       - "27017:27017"
