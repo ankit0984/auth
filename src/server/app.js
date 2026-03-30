@@ -134,6 +134,11 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.disable("x-powered-by");
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 app.get("/", (_req, res) => {
   res.status(200).json({
