@@ -28,14 +28,14 @@ Content-Type: application/json
 
 - Creates a user with default role `user`
 - Stores a hashed verification code and expiry
-- Sends a welcome email
+- Waits for the verification email send before returning success
 - Sends a 6-character verification code to the user email
 
 ### Success response
 
 ```json
 {
-  "statusCode": 201,
+  "statusCode": 200,
   "success": true,
   "message": "user created successfully, verification code sent to email",
   "data": {

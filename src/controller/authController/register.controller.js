@@ -59,7 +59,15 @@ export const register = asyncHandler(async (req, res) => {
   });
 
   const user = await User.findById(createdUser._id).select(publicUserProjection);
-  emailService.sendRegistrationEmailsInBackground(createdUser, verificationCode);
+
+  try {
+    await emailService.sendVerificationCodeEmail(createdUser, verificationCode);
+  } catch (error) {
+    throw new ApiError(
+      502,
+      "account created but verification email could not be sent, please request a new code from resend verification"
+    );
+  }
 
   return res.status(200).json(
     new ApiResponse(

@@ -17,6 +17,12 @@ class EmailService {
     });
   }
 
+  ensureMailConfig() {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      throw new Error("Email service is not configured");
+    }
+  }
+
   async compileTemplate(templateName, variables) {
     const templatePath = path.join(__dirname, "..", "templates", `${templateName}.html`);
     let template = await fs.readFile(templatePath, "utf-8");
@@ -31,6 +37,8 @@ class EmailService {
 
   async sendMail({ to, subject, html, text }) {
     try {
+      this.ensureMailConfig();
+
       const mailOptions = {
         from: `"ELibJS" <${process.env.EMAIL_USER}>`,
         to,
@@ -125,18 +133,6 @@ class EmailService {
           <p>This code expires in 10 minutes. If you did not request this, reset your password immediately.</p>
         </div>
       `,
-    });
-  }
-
-  sendRegistrationEmailsInBackground(user, verificationCode) {
-    setImmediate(() => {
-      Promise.allSettled([this.sendWelcomeEmail(user), this.sendVerificationCodeEmail(user, verificationCode)]).then((results) => {
-        const rejectedResults = results.filter((result) => result.status === "rejected");
-
-        if (rejectedResults.length) {
-          console.error("Failed to send one or more registration emails:", rejectedResults);
-        }
-      });
     });
   }
 }
