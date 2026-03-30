@@ -2,6 +2,7 @@ import { BookSchema } from "../../../models/books.models.js";
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { ApiError } from "../../../utils/ApiError.js";
 import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { normalizeAuthors } from "../../../utils/normalizeAuthors.js";
 
 export const uploadBookMock = asyncHandler(async (req, res) => {
   const { title, author, description, genre, language, coverImage, coverImageFileId, pdf, pdfFileId } = req.body;
@@ -21,39 +22,15 @@ export const uploadBookMock = asyncHandler(async (req, res) => {
   }
 
   const normalizedTitle = title.trim().toLowerCase();
-  const normalizeAuthors = (authorInput) => {
-    if (Array.isArray(authorInput)) {
-      return authorInput.map((author) => author?.toString().trim().toLowerCase()).filter(Boolean);
-    }
+  const normalizedAuthors = normalizeAuthors(author);
 
-    if (typeof authorInput === "string") {
-      const trimmed = authorInput.trim();
-
-      if (!trimmed) {
-        return [];
-      }
-
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          return parsed.map((author) => author?.toString().trim().toLowerCase()).filter(Boolean);
-        }
-      } catch {
-        return trimmed
-          .split(",")
-          .map((author) => author.trim().toLowerCase())
-          .filter(Boolean);
-      }
-
-      return [trimmed.toLowerCase()];
-    }
-
-    return [];
-  };
+  if (!normalizedAuthors.length) {
+    throw new ApiError(400, "author must contain at least one valid author name");
+  }
 
   const existingBook = await BookSchema.findOne({
     title: normalizedTitle,
-    author: normalizeAuthors,
+    author: normalizedAuthors,
   });
 
   if (existingBook) {
@@ -62,7 +39,7 @@ export const uploadBookMock = asyncHandler(async (req, res) => {
 
   const book = await BookSchema.create({
     title: normalizedTitle,
-    author: normalizeAuthors,
+    author: normalizedAuthors,
     description: description.trim(),
     genre: genre.trim().toLowerCase(),
     language: language.trim().toLowerCase(),

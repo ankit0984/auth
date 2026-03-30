@@ -4,45 +4,12 @@ import { ApiError } from "../../../utils/ApiError.js";
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { BookSchema } from "../../../models/books.models.js";
 import { buildBookUploadMeta, uploadBufferToImageKit } from "../../../utils/imagekitUpload.js";
+import { normalizeAuthors } from "../../../utils/normalizeAuthors.js";
 
 const IMAGEKIT_MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 
-const normalizeAuthors = (authorInput) => {
-  if (Array.isArray(authorInput)) {
-    return authorInput
-      .map((author) => author?.toString().trim().toLowerCase())
-      .filter(Boolean);
-  }
-
-  if (typeof authorInput === "string") {
-    const trimmed = authorInput.trim();
-
-    if (!trimmed) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) {
-        return parsed
-          .map((author) => author?.toString().trim().toLowerCase())
-          .filter(Boolean);
-      }
-    } catch {
-      return trimmed
-        .split(",")
-        .map((author) => author.trim().toLowerCase())
-        .filter(Boolean);
-    }
-
-    return [trimmed.toLowerCase()];
-  }
-
-  return [];
-};
-
 export const uploadBook = asyncHandler(async (req, res) => {
-  const { title, author, description, genre, language,} = req.body;
+  const { title, author, description, genre, language } = req.body;
   const coverImageFile = req.files?.coverImage?.[0];
   const pdfFile = req.files?.pdf?.[0];
 
