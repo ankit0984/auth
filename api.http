@@ -23,6 +23,9 @@ Content-Type: application/json
 ###
 GET {{baseUrl}}/users/admin/profile
 
+###
+GET {{baseUrl}}/users/profile
+
 ### logout
 POST {{baseUrl}}/auth/logout
 

@@ -14,7 +14,7 @@ import {
   verifyEmail,
 } from "../controller/authController/verification.controller.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
-import { user_profile } from "../controller/userProfile/profile.controller.js";
+import { admin_user_profile, user_profile } from "../controller/userProfile/profile.controller.js";
 
 const auth_router = Router();
 auth_router.use("/auth", authLimiter);
@@ -33,7 +33,8 @@ auth_router.route("/auth/2fa/confirm").post(verifyJWT, requireVerifiedEmail, con
 auth_router.route("/auth/2fa/disable").post(verifyJWT, requireVerifiedEmail, disableTwoFactor);
 
 auth_router.route("/users/:userId").put(verifyJWT, updateUser);
-auth_router.route("/users/admin/profile").get(verifyJWT,requireRole("admin"), user_profile);
+auth_router.route("/users/admin/profile").get(verifyJWT,requireRole("admin"), admin_user_profile);
+auth_router.route("/users/profile").get(verifyJWT,requireRole("user"), user_profile);
 
 auth_router.route("/admin/users").get(verifyJWT, requireRole("admin"), listUsers);
 auth_router.route("/admin/users/:userId/role").patch(verifyJWT, requireRole("admin"), updateUserRole);

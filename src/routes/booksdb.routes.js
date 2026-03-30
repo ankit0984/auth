@@ -4,7 +4,6 @@ import { requireRole, verifyJWT } from "../middleware/auth.middleware.js";
 import { uploadBookFiles } from "../middleware/fileUpload.js";
 import { countBook } from "../controller/booksController/bookCount/count.controller.js";
 import { getBooks } from "../controller/booksController/getBooks/books.controller.js";
-import { getBooksv2 } from "../controller/booksController/getBooks/bookv2.controller.js";
 import { uploadBookMock } from "../controller/booksController/bookUpload/uploadmock.js";
 
 const books_db_router = Router();
